@@ -1,14 +1,9 @@
-// Write code here.
-//
-// To see what the code looks like after macro expansion:
-//     $ cargo expand
-//
-// To run the code:
-//     $ cargo run
-
+#![feature(prelude_import)]
+#[prelude_import]
+use std::prelude::rust_2021::*;
+#[macro_use]
+extern crate std;
 use sorted::sorted;
-
-#[sorted]
 pub enum Conference {
     RustBeltRust,
     RustConf,
@@ -16,13 +11,9 @@ pub enum Conference {
     RustLatam,
     RustRush,
 }
-
 impl Conference {
-    #[sorted::check]
     pub fn region(&self) -> &str {
         use self::Conference::*;
-
-        #[sorted]
         match self {
             RustFest => "Europe",
             RustLatam => "Latin America",
@@ -30,5 +21,4 @@ impl Conference {
         }
     }
 }
-
 fn main() {}
