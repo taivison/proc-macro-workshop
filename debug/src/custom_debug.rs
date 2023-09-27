@@ -2,7 +2,6 @@ use std::collections::HashSet;
 
 use quote::{quote, ToTokens};
 
-
 struct FieldMetaData<'ast> {
     ident: &'ast syn::Ident,
     format: Option<String>,
@@ -160,32 +159,34 @@ impl<'ast> CustomDebugImplementor<'ast> {
                     return None;
                 }
 
-                let meta = match a.parse_args::<syn::MetaNameValue>(){
+                let meta = match a.parse_args::<syn::MetaNameValue>() {
                     Ok(m) => m,
                     Err(e) => return Some(Err(e)),
                 };
 
                 if !meta.path.is_ident("bound") {
-                    return Some(Err(syn::Error::new_spanned(&a.meta, "expected `debug(bound = \"...\")`")));
+                    return Some(Err(syn::Error::new_spanned(
+                        &a.meta,
+                        "expected `debug(bound = \"...\")`",
+                    )));
                 }
 
-
                 let value = match meta.value {
-                    syn::Expr::Lit(syn::ExprLit {lit: syn::Lit::Str(ref s ), ..}) => s.value(),
-                    _ => return Some(Err(syn::Error::new_spanned(
-                                    &meta.value,
-                                    "The value must be a valid String!",
-                                ))),
+                    syn::Expr::Lit(syn::ExprLit {
+                        lit: syn::Lit::Str(ref s),
+                        ..
+                    }) => s.value(),
+                    _ => {
+                        return Some(Err(syn::Error::new_spanned(
+                            &meta.value,
+                            "The value must be a valid String!",
+                        )))
+                    }
                 };
 
                 match syn::parse_str(&value) {
                     Ok(w) => Some(Ok(w)),
-                    Err(e) => Some(Err(
-                        syn::Error::new_spanned(
-                            meta.value,
-                            e.to_string()
-                        )
-                    )),
+                    Err(e) => Some(Err(syn::Error::new_spanned(meta.value, e.to_string()))),
                 }
             })
             .collect()

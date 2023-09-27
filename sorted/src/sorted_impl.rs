@@ -89,19 +89,16 @@ impl VisitMut for MatchExprChecker {
         let paths = i
             .arms
             .iter()
-            .map(|arm| {
-                dbg!(arm);
-                match arm.pat {
-                    syn::Pat::Path(ref p) => Ok(p.path.clone().into()),
-                    syn::Pat::Struct(ref s) => Ok(s.path.clone().into()),
-                    syn::Pat::TupleStruct(ref t) => Ok(t.path.clone().into()),
-                    syn::Pat::Wild(ref u) => Ok(u.underscore_token.into()),
-                    syn::Pat::Ident(ref i) => Ok(i.ident.clone().into()),
-                    _ => Err(syn::Error::new_spanned(
-                        &arm.pat,
-                        "unsupported by #[sorted]",
-                    )),
-                }
+            .map(|arm| match arm.pat {
+                syn::Pat::Path(ref p) => Ok(p.path.clone().into()),
+                syn::Pat::Struct(ref s) => Ok(s.path.clone().into()),
+                syn::Pat::TupleStruct(ref t) => Ok(t.path.clone().into()),
+                syn::Pat::Wild(ref u) => Ok(u.underscore_token.into()),
+                syn::Pat::Ident(ref i) => Ok(i.ident.clone().into()),
+                _ => Err(syn::Error::new_spanned(
+                    &arm.pat,
+                    "unsupported by #[sorted]",
+                )),
             })
             .collect::<syn::Result<Vec<PathWrapper>>>();
 

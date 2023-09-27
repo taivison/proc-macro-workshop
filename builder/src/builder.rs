@@ -1,5 +1,5 @@
 use proc_macro::TokenStream;
-use quote::{ToTokens, quote};
+use quote::{quote, ToTokens};
 
 enum FieldType<'ast> {
     Option(&'ast syn::Type),
@@ -15,7 +15,7 @@ struct FieldMetaData<'ast> {
 pub(super) struct BuilderImplementor<'ast> {
     struct_ident: &'ast syn::Ident,
     fields: Vec<FieldMetaData<'ast>>,
-    vis: &'ast syn::Visibility
+    vis: &'ast syn::Visibility,
 }
 
 impl<'ast> BuilderImplementor<'ast> {
@@ -32,16 +32,18 @@ impl<'ast> BuilderImplementor<'ast> {
         Ok(Self {
             struct_ident: &ast.ident,
             fields,
-            vis: &ast.vis
+            vis: &ast.vis,
         })
     }
 
     pub(super) fn generate_impl(&self) -> TokenStream {
-        let builder_ident = syn::Ident::new(&format!("{}Builder", self.struct_ident), self.struct_ident.span());
+        let builder_ident = syn::Ident::new(
+            &format!("{}Builder", self.struct_ident),
+            self.struct_ident.span(),
+        );
         let vis = self.vis;
         let ident = self.struct_ident;
 
-        
         let builder_fields = self.fields.iter().map(|f| {
             let vis = f.vis;
             let ident = f.ident;
@@ -57,9 +59,10 @@ impl<'ast> BuilderImplementor<'ast> {
             match f.ty {
                 FieldType::Option(ty) => {
                     quote!(#vis fn #ident(&mut self, #ident: #ty) -> &mut Self {
-                    self.#ident = ::std::option::Option::Some(#ident);
-                    self
-                })},
+                        self.#ident = ::std::option::Option::Some(#ident);
+                        self
+                    })
+                }
                 FieldType::VecEach((ref name, ty)) => {
                     let extra = if ident != name {
                         quote!(
@@ -80,14 +83,14 @@ impl<'ast> BuilderImplementor<'ast> {
                             self
                         }
                     )
-                },
+                }
                 FieldType::Other(ty) => {
                     quote!(
                         #vis fn #ident(&mut self, #ident: #ty) -> &mut Self {
                         self.#ident = ::std::option::Option::Some(#ident);
                         self
                     })
-                },
+                }
             }
         });
 
@@ -104,7 +107,7 @@ impl<'ast> BuilderImplementor<'ast> {
             let ident = f.ident;
             match f.ty {
                 FieldType::VecEach(_) => quote!(#ident: ::std::vec![]),
-                _ => quote!(#ident: ::std::option::Option::None)
+                _ => quote!(#ident: ::std::option::Option::None),
             }
         });
 
